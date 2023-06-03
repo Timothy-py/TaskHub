@@ -1,4 +1,4 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
 import { SignUpDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/user/user.model';
@@ -7,7 +7,12 @@ import { error } from 'console';
 
 @Injectable()
 export class AuthService {
-  constructor(@InjectModel(User) private userModel: typeof User) {}
+  constructor(
+    @InjectModel(User) private userModel: typeof User,
+    private readonly logger: Logger,
+  ) {}
+
+  SERVICE: string = AuthService.name;
 
   // SIGNUP A NEW USER
   async signup(dto: SignUpDto): Promise<User> {
@@ -21,8 +26,12 @@ export class AuthService {
         name: dto.name,
       });
 
+      this.logger.log(`User created successfully - ${user.id}`, this.SERVICE);
+
       return user;
     } catch (error) {
+      this.logger.error('Unable to create user', error.stack, this.SERVICE);
+
       if (error.name === 'SequelizeUniqueConstraintError')
         throw new HttpException('Email already exist', HttpStatus.CONFLICT);
 
