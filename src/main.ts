@@ -35,6 +35,7 @@ async function bootstrap() {
       'https://github.com/Timothy-py',
       'adeyeyetimothy33@gmail.com',
     )
+    .addBearerAuth()
     .build();
 
   const document = SwaggerModule.createDocument(app, config);

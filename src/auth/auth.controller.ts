@@ -1,10 +1,16 @@
 import { Controller, Post, Body, HttpCode } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiHeader,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 import { User } from 'src/user/user.model';
 import { SignInDto, SignUpDto } from './dto';
 import { Tokens } from './types/tokens.type';
-import { GetUser } from 'src/decorators';
+import { GetUser, Public } from 'src/decorators';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -12,6 +18,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   // SIGNUP API
+  @Public()
   @HttpCode(201)
   @ApiOperation({ summary: 'Signup a user' })
   @ApiBody({ type: SignUpDto })
@@ -21,6 +28,7 @@ export class AuthController {
   }
 
   // SIGNIN API
+  @Public()
   @HttpCode(200)
   @ApiOperation({ summary: 'Sign in a user' })
   @ApiBody({ type: SignInDto })
@@ -32,7 +40,8 @@ export class AuthController {
   // LOGOUT API
   @HttpCode(200)
   @ApiOperation({ summary: 'User logout' })
-  @Post('logout')
+  @ApiBearerAuth()
+  @Post('local/logout')
   logout(@GetUser('sub') userId: string) {
     return this.authService.logout(userId);
   }

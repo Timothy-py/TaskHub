@@ -4,10 +4,11 @@ import { AuthController } from './auth.controller';
 import { SequelizeModule } from '@nestjs/sequelize';
 import { User } from 'src/user/user.model';
 import { JwtModule } from '@nestjs/jwt';
+import { AtStrategy, RtStrategy } from './strategies';
 
 @Module({
   imports: [SequelizeModule.forFeature([User]), JwtModule.register({})],
   controllers: [AuthController],
-  providers: [AuthService, Logger],
+  providers: [AuthService, Logger, AtStrategy, RtStrategy],
 })
 export class AuthModule {}
