@@ -4,6 +4,7 @@ import { ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { User } from 'src/user/user.model';
 import { SignInDto, SignUpDto } from './dto';
 import { Tokens } from './types/tokens.type';
+import { GetUser } from 'src/decorators';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -26,5 +27,13 @@ export class AuthController {
   @Post('local/signin')
   signin(@Body() signinDto: SignInDto): Promise<Tokens> {
     return this.authService.signin(signinDto);
+  }
+
+  // LOGOUT API
+  @HttpCode(200)
+  @ApiOperation({ summary: 'User logout' })
+  @Post('logout')
+  logout(@GetUser('sub') userId: string) {
+    return this.authService.logout(userId);
   }
 }

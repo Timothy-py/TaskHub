@@ -12,6 +12,7 @@ import * as argon from 'argon2';
 import { Tokens } from './types/tokens.type';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+import { Op } from 'sequelize';
 
 @Injectable()
 export class AuthService {
@@ -73,6 +74,7 @@ export class AuthService {
       const tokens = await this.getTokens(user.id, dto.email);
       await this.updateRTHash(user.id, tokens.refresh_token);
 
+      this.logger.log(`User logged in - ${user.id}`, this.SERVICE);
       return tokens;
     } catch (error) {
       if (error.response.message === 'Not Found')
@@ -80,10 +82,36 @@ export class AuthService {
       else if (error.response === 'IP')
         throw new HttpException('Incorrect Password', HttpStatus.UNAUTHORIZED);
 
+      this.logger.error('Unable to LOGIN user', error.stack, this.SERVICE);
       throw new HttpException(
         `${error.messsage}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
+    }
+  }
+
+  // USER LOGOUT
+  async logout(userId: string) {
+    try {
+      await this.userModel.update(
+        {
+          refreshToken: null,
+        },
+        {
+          where: {
+            id: userId,
+            refreshToken: {
+              [Op.not]: null,
+            },
+          },
+        },
+      );
+
+      this.logger.log(`User logged out`, this.SERVICE);
+      return;
+    } catch (error) {
+      this.logger.error('Unable to LOGOUT user', error.stack, this.SERVICE);
+      throw new HttpException('An error occured', 500);
     }
   }
 
@@ -135,6 +163,7 @@ export class AuthService {
     await this.userModel.update(
       {
         refreshToken: hash,
+        lastLogin: new Date(),
       },
       {
         where: {
