@@ -39,4 +39,10 @@ export class User extends Model<User> {
     allowNull: true,
   })
   lastLogin: Date;
+
+  @Column({
+    type: DataType.STRING,
+    allowNull: true,
+  })
+  refreshToken: string;
 }

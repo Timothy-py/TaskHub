@@ -1,15 +1,25 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
-import { SignUpDto } from './dto';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
+import { SignInDto, SignUpDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
 import { User } from 'src/user/user.model';
 import * as argon from 'argon2';
-import { error } from 'console';
+import { Tokens } from './types/tokens.type';
+import { ConfigService } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User) private userModel: typeof User,
     private readonly logger: Logger,
+    private readonly config: ConfigService,
+    private readonly jwt: JwtService,
   ) {}
 
   SERVICE: string = AuthService.name;
@@ -36,15 +46,103 @@ export class AuthService {
         throw new HttpException('Email already exist', HttpStatus.CONFLICT);
 
       throw new HttpException(
-        `${error.messsgae}`,
+        `${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }
 
+  // SIGN IN A USER
+  async signin(dto: SignInDto): Promise<Tokens> {
+    try {
+      // find the user
+      const user = await this.userModel.findOne({
+        where: {
+          email: dto.email,
+        },
+      });
+
+      if (!user) throw new NotFoundException();
+
+      // verify the password
+      const verify_pass = await argon.verify(user.password, dto.password);
+
+      if (!verify_pass) throw new HttpException('IP', 401);
+
+      // generate sign in tokens
+      const tokens = await this.getTokens(user.id, dto.email);
+      await this.updateRTHash(user.id, tokens.refresh_token);
+
+      return tokens;
+    } catch (error) {
+      if (error.response.message === 'Not Found')
+        throw new NotFoundException('User does not exist');
+      else if (error.response === 'IP')
+        throw new HttpException('Incorrect Password', HttpStatus.UNAUTHORIZED);
+
+      throw new HttpException(
+        `${error.messsage}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // ************ HELPER FUNCTIONS ******************
   // hash value
   async hasher(data: string) {
     const hash = await argon.hash(data);
     return hash;
+  }
+
+  // generate access and refresh tokens
+  async getTokens(userId: string, email: string): Promise<Tokens> {
+    const AT_SECRET = this.config.get('ACCESS_TOKEN_SECRET');
+    const RT_SECRET = this.config.get('REFRESH_TOKEN_SECRET');
+
+    const [at, rt] = await Promise.all([
+      this.jwt.signAsync(
+        {
+          sub: userId,
+          email: email,
+        },
+        {
+          secret: AT_SECRET,
+          expiresIn: 60 * 15,
+        },
+      ),
+
+      this.jwt.signAsync(
+        {
+          sub: userId,
+          email: email,
+        },
+        {
+          secret: RT_SECRET,
+          expiresIn: 60 * 60 * 24 * 7,
+        },
+      ),
+    ]);
+
+    return {
+      access_token: at,
+      refresh_token: rt,
+    };
+  }
+
+  // hash and update user refresh token
+  async updateRTHash(userId: string, rt: string) {
+    const hash = await this.hasher(rt);
+    await this.userModel.update(
+      {
+        refreshToken: hash,
+      },
+      {
+        where: {
+          id: userId,
+        },
+      },
+    );
+
+    return;
   }
 }
