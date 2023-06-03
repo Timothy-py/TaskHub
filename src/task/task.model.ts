@@ -27,7 +27,7 @@ export class Task extends Model<Task> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: false,
+    allowNull: true,
   })
   description: string;
 
