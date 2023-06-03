@@ -8,6 +8,7 @@ import dbConfig from '../db/config';
 import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './auth/guard';
+import { TaskModule } from './task/task.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { AtGuard } from './auth/guard';
     AuthModule,
     UserModule,
     ConfigModule.forRoot({ isGlobal: true }),
+    TaskModule,
   ],
   providers: [
     Logger,
