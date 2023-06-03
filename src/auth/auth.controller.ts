@@ -22,7 +22,7 @@ export class AuthController {
   @HttpCode(201)
   @ApiOperation({ summary: 'Signup a user' })
   @ApiBody({ type: SignUpDto })
-  @Post('signup')
+  @Post('local/signup')
   signup(@Body() signupDto: SignUpDto): Promise<User> {
     return this.authService.signup(signupDto);
   }
