@@ -1,6 +1,7 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
+import { ValidationPipe } from '@nestjs/common';
 
 const PORT = process.env.PORT || 3000;
 
@@ -9,6 +10,13 @@ async function bootstrap() {
 
   // specify default global api prefix
   app.setGlobalPrefix('/api/v1');
+
+  // strip dto with no validator
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+    }),
+  );
 
   // setup swagger documentation
   const config = new DocumentBuilder()
