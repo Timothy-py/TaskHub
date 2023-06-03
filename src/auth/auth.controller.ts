@@ -1,4 +1,4 @@
-import { Controller, Post, Body, HttpCode } from '@nestjs/common';
+import { Controller, Post, Body, HttpCode, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import {
   ApiBearerAuth,
@@ -11,6 +11,7 @@ import { User } from 'src/user/user.model';
 import { SignInDto, SignUpDto } from './dto';
 import { Tokens } from './types/tokens.type';
 import { GetUser, Public } from 'src/decorators';
+import { RtGuard } from './guard';
 
 @ApiTags('Authentication')
 @Controller('auth')
@@ -44,5 +45,19 @@ export class AuthController {
   @Post('local/logout')
   logout(@GetUser('sub') userId: string) {
     return this.authService.logout(userId);
+  }
+
+  // REFRESH TOKEN API
+  @Public()
+  @UseGuards(RtGuard)
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Refresh access token' })
+  @ApiBearerAuth()
+  @Post('local/refresh')
+  refreshToken(
+    @GetUser('sub') userId: string,
+    @GetUser('refreshToken') refreshToken: string,
+  ): Promise<Tokens> {
+    return this.authService.refreshToken(userId, refreshToken);
   }
 }

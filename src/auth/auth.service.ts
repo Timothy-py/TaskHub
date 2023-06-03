@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Injectable,
@@ -113,6 +114,28 @@ export class AuthService {
       this.logger.error('Unable to LOGOUT user', error.stack, this.SERVICE);
       throw new HttpException('An error occured', 500);
     }
+  }
+
+  // REFRESH TOKEN SERVICE
+  async refreshToken(userId: string, rt: string) {
+    // find user
+    const user = await this.userModel.findByPk(userId);
+    console.log(user);
+
+    // user does not exist or not logged in
+    if (!user || !user.refreshToken)
+      throw new ForbiddenException('Access Denied');
+
+    // check if provided refresh token is correct
+    const rtMatches = await argon.verify(user.refreshToken, rt);
+
+    if (!rtMatches) throw new ForbiddenException('Access Denied');
+
+    const tokens = await this.getTokens(userId, user.email);
+
+    await this.updateRTHash(userId, tokens.refresh_token);
+
+    return tokens;
   }
 
   // ************ HELPER FUNCTIONS ******************
