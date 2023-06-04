@@ -171,4 +171,37 @@ export class TaskService {
       );
     }
   }
+
+  //   **********************DELETE TASK**********************
+  async deleteTask(taskId: string, userId: string) {
+    try {
+      await this.taskModel.destroy({
+        where: {
+          id: taskId,
+          ownerId: userId,
+        },
+      });
+
+      // remove task from cache
+      const cacheKey = `task_${taskId}`;
+      try {
+        await this.cache.del(cacheKey);
+      } catch (error) {
+        // TODO: Implement a Fallback mechanism: remove task from cache
+        // If cache delete fails, the data is still removed from the database
+        this.logger.warn(
+          `Cache delete failed for ${cacheKey}: ${error.message}`,
+          this.SERVICE,
+        );
+      }
+
+      return;
+    } catch (error) {
+      this.logger.error(`Unable to delete task - ${taskId}`, this.SERVICE);
+      throw new HttpException(
+        `${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

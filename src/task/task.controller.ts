@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpCode,
   Param,
@@ -69,5 +70,17 @@ export class TaskController {
     @GetUser('sub') userId: string,
   ) {
     return this.taskService.updateTaskComplete(taskId, userId, dto);
+  }
+
+  // DELETE TASK ITEM
+  @HttpCode(204)
+  @ApiOperation({ summary: 'Delete a task item' })
+  @ApiBearerAuth()
+  @Delete(':id')
+  deleteTask(
+    @Param('id', ParseUUIDPipe) taskId: string,
+    @GetUser('sub') userId: string,
+  ) {
+    return this.taskService.deleteTask(taskId, userId);
   }
 }
