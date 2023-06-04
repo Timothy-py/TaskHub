@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Task } from 'src/task/task.model';
-import { CreateTaskDto, UpdateTaskDto } from './dto';
+import { CreateTaskDto, UpdateTaskDto, updateTaskComplete } from './dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Sequelize } from 'sequelize';
@@ -24,7 +24,7 @@ export class TaskService {
 
   SERVICE: string = TaskService.name;
 
-  // CREATE A TASK ITEM
+  // **********************CREATE A TASK ITEM**********************
   async createTask(userId: string, dto: CreateTaskDto): Promise<Task> {
     try {
       // create a new task instance
@@ -51,7 +51,7 @@ export class TaskService {
     }
   }
 
-  // GET A TASK ITEM
+  // **********************GET A TASK ITEM**********************
   async getTask(userId: string, taskId: string): Promise<Task> {
     try {
       // first check if task is available in the cache
@@ -88,7 +88,7 @@ export class TaskService {
     }
   }
 
-  //   EDIT/UPDATE A TASK ITEM
+  //   **********************EDIT/UPDATE A TASK ITEM**********************
   async editTask(
     taskId: string,
     userId: string,
@@ -130,6 +130,41 @@ export class TaskService {
       );
 
       await transaction.rollback();
+      throw new HttpException(
+        `${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  //   **********************UPDATE TASK COMPLETE STATUS**********************
+  async updateTaskComplete(
+    taskId: string,
+    userId: string,
+    dto: updateTaskComplete,
+  ) {
+    try {
+      const [numOfAffectedRows, updatedTask] = await this.taskModel.update(
+        dto,
+        {
+          where: {
+            id: taskId,
+            ownerId: userId,
+          },
+          returning: true,
+        },
+      );
+
+      this.logger.log(`Task updated successfully - ${taskId}`, this.SERVICE);
+
+      return updatedTask;
+    } catch (error) {
+      this.logger.error(
+        `Unable to update task complete status - ${taskId}`,
+        error.stack,
+        this.SERVICE,
+      );
+
       throw new HttpException(
         `${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
