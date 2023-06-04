@@ -5,7 +5,10 @@ import {
   DataType,
   PrimaryKey,
   Default,
+  BelongsToMany,
 } from 'sequelize-typescript';
+import { TaskUser } from 'src/task/task-user.model';
+import { Task } from 'src/task/task.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Table({ tableName: 'users' })
@@ -45,4 +48,11 @@ export class User extends Model<User> {
     allowNull: true,
   })
   refreshToken: string;
+
+  // Tasks-Users Many-To-Many relationship
+  @BelongsToMany(() => Task, {
+    through: () => TaskUser,
+    as: 'assignedTasks',
+  })
+  assignedTasks: Task[];
 }

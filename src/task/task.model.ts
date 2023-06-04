@@ -67,6 +67,9 @@ export class Task extends Model<Task> {
   owner: User;
 
   // Users-Tasks Many-To-Many relationship
-  @BelongsToMany(() => User, () => TaskUser)
-  users: User[];
+  @BelongsToMany(() => User, {
+    through: () => TaskUser,
+    as: 'assignedUsers',
+  })
+  assignedUsers: User[];
 }

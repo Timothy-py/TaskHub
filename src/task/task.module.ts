@@ -6,9 +6,10 @@ import { Task } from './task.model';
 import { TaskUser } from './task-user.model';
 import { Sequelize } from 'sequelize';
 import dbConfig from 'db/config';
+import { User } from 'src/user/user.model';
 
 @Module({
-  imports: [SequelizeModule.forFeature([Task, TaskUser])],
+  imports: [SequelizeModule.forFeature([Task, TaskUser, User])],
   controllers: [TaskController],
   providers: [
     TaskService,

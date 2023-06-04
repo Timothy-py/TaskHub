@@ -12,7 +12,12 @@ import {
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateTaskDto, UpdateTaskDto, updateTaskComplete } from './dto';
+import {
+  AddUsersToTaskDto,
+  CreateTaskDto,
+  UpdateTaskDto,
+  updateTaskComplete,
+} from './dto';
 import { GetUser } from 'src/decorators';
 import { Task } from './task.model';
 
@@ -82,5 +87,18 @@ export class TaskController {
     @GetUser('sub') userId: string,
   ) {
     return this.taskService.deleteTask(taskId, userId);
+  }
+
+  // ADD USER TO TASK
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Add user to a task' })
+  @ApiBearerAuth()
+  @Patch('add-users/:id')
+  addUsersToTask(
+    @Body() dto: AddUsersToTaskDto,
+    @Param('id', ParseUUIDPipe) taskId: string,
+    @GetUser('sub') userId: string,
+  ): Promise<Task> {
+    return this.taskService.addUsersToTask(taskId, userId, dto);
   }
 }

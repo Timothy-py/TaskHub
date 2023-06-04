@@ -1,4 +1,5 @@
 import {
+  ForbiddenException,
   HttpException,
   HttpStatus,
   Inject,
@@ -8,15 +9,22 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Task } from 'src/task/task.model';
-import { CreateTaskDto, UpdateTaskDto, updateTaskComplete } from './dto';
+import {
+  AddUsersToTaskDto,
+  CreateTaskDto,
+  UpdateTaskDto,
+  updateTaskComplete,
+} from './dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Sequelize } from 'sequelize';
+import { User } from 'src/user/user.model';
 
 @Injectable()
 export class TaskService {
   constructor(
     @InjectModel(Task) private taskModel: typeof Task, // model
+    @InjectModel(User) private userModel: typeof User,
     private readonly logger: Logger, // log
     @Inject(CACHE_MANAGER) private cache: Cache,
     @Inject(Sequelize) private readonly sequelize: Sequelize,
@@ -198,6 +206,59 @@ export class TaskService {
       return;
     } catch (error) {
       this.logger.error(`Unable to delete task - ${taskId}`, this.SERVICE);
+      throw new HttpException(
+        `${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  //   **********************ADD USERS TO A TASK**********************
+  async addUsersToTask(
+    taskId: string,
+    userId: string,
+    dto: AddUsersToTaskDto,
+  ): Promise<Task> {
+    try {
+      // find the task in the database: base on 1-1 relation with User
+      const task = await this.taskModel.findByPk(taskId, {
+        include: [{ model: User, as: 'owner' }],
+      });
+
+      // check if user is the owner
+      if (task.ownerId != userId) throw new ForbiddenException();
+
+      // handle when task is not found
+      if (!task) throw new NotFoundException();
+
+      // find users with the specified emails
+      const users = await this.userModel.findAll({
+        where: { email: dto.emails },
+      });
+      console.log('Users = ', users);
+
+      // associate the users with the task
+      await task.$set('assignedUsers', users);
+
+      // find the task in the db: base on *-* relation with user
+      const updatedTask = await this.taskModel.findByPk(taskId, {
+        include: [{ model: User, as: 'assignedUsers' }],
+      });
+
+      this.logger.log(
+        `Users added to Task successfully - ${taskId}`,
+        this.SERVICE,
+      );
+
+      return updatedTask;
+    } catch (error) {
+      if (error.status === 403) throw new ForbiddenException('Access Denied!');
+      this.logger.error(
+        `Unable to add users to task - ${taskId}`,
+        error.stack,
+        this.SERVICE,
+      );
+
       throw new HttpException(
         `${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
