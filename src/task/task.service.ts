@@ -265,4 +265,37 @@ export class TaskService {
       );
     }
   }
+
+  //   **********************VIEW ALL TASK USERS**********************
+  async viewTaskUsers(taskId: string): Promise<Task> {
+    try {
+      const task = await this.taskModel.findByPk(taskId, {
+        include: [
+          { model: User, as: 'owner' },
+          { model: User, as: 'assignedUsers' },
+        ],
+      });
+
+      if (!task) throw new NotFoundException();
+
+      this.logger.log(
+        `Task users retrieved successfully - ${taskId}`,
+        this.SERVICE,
+      );
+
+      return task;
+    } catch (error) {
+      if (error.status === 404) throw new NotFoundException('Task Not Found');
+      this.logger.error(
+        `Unable to retrieve task users - ${taskId}`,
+        error.stack,
+        this.SERVICE,
+      );
+
+      throw new HttpException(
+        `${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
 }

@@ -101,4 +101,13 @@ export class TaskController {
   ): Promise<Task> {
     return this.taskService.addUsersToTask(taskId, userId, dto);
   }
+
+  // VIEW ALL TASK USERS
+  @HttpCode(200)
+  @ApiOperation({ summary: 'View all users assigned to a task' })
+  @ApiBearerAuth()
+  @Get(':id/users')
+  viewTaskUsers(@Param('id', ParseUUIDPipe) taskId: string): Promise<Task> {
+    return this.taskService.viewTaskUsers(taskId);
+  }
 }
