@@ -120,7 +120,6 @@ export class AuthService {
   async refreshToken(userId: string, rt: string) {
     // find user
     const user = await this.userModel.findByPk(userId);
-    console.log(user);
 
     // user does not exist or not logged in
     if (!user || !user.refreshToken)

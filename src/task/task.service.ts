@@ -1,4 +1,10 @@
-import { HttpException, HttpStatus, Injectable, Logger } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Task } from 'src/task/task.model';
 import { CreateTaskDto } from './dto';
@@ -35,6 +41,34 @@ export class TaskService {
       throw new HttpException(
         `${error.message}`,
         HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // GET A TASK ITEM
+  async getTask(userId: string, taskId: string): Promise<Task> {
+    try {
+      // *******implement check cache**********
+      const task = await this.taskModel.findOne({
+        where: {
+          id: taskId,
+          ownerId: userId,
+        },
+      });
+
+      if (!task) throw new NotFoundException();
+
+      this.logger.log(`Task retrieved successfully - ${task.id}`, this.SERVICE);
+
+      return task;
+    } catch (error) {
+      if (error.response.message === 'Not Found')
+        throw new NotFoundException('Task does not exist');
+
+      this.logger.error(
+        `Unable to retrieve task item - ${taskId}`,
+        error.task,
+        this.SERVICE,
       );
     }
   }

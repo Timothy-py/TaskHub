@@ -1,4 +1,12 @@
-import { Body, Controller, HttpCode, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import { TaskService } from './task.service';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateTaskDto } from './dto';
@@ -21,5 +29,17 @@ export class TaskController {
     @GetUser('sub') userId: string,
   ): Promise<Task> {
     return this.taskService.createTask(userId, createTaskDto);
+  }
+
+  // GET A TASK DETAIL API
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Get a task details' })
+  @ApiBearerAuth()
+  @Get(':id')
+  getTask(
+    @Param('id', ParseUUIDPipe) taskId: string,
+    @GetUser('sub') userId: string,
+  ): Promise<Task> {
+    return this.taskService.getTask(userId, taskId);
   }
 }
