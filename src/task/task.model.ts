@@ -11,6 +11,7 @@ import {
 } from 'sequelize-typescript';
 import { v4 as uuidv4 } from 'uuid';
 import { User } from '../user/user.model';
+import { TaskUser } from './task-user.model';
 
 @Table({ tableName: 'tasks' })
 export class Task extends Model<Task> {
@@ -27,7 +28,7 @@ export class Task extends Model<Task> {
 
   @Column({
     type: DataType.STRING,
-    allowNull: true,
+    allowNull: false,
   })
   description: string;
 
@@ -68,22 +69,4 @@ export class Task extends Model<Task> {
   // Users-Tasks Many-To-Many relationship
   @BelongsToMany(() => User, () => TaskUser)
   users: User[];
-}
-
-// Task-User Many-To-Many relationship Table
-@Table({ tableName: 'task_user' })
-export class TaskUser extends Model<TaskUser> {
-  @ForeignKey(() => Task)
-  @Column({
-    type: DataType.UUID,
-    allowNull: false,
-  })
-  taskId: string;
-
-  @ForeignKey(() => User)
-  @Column({
-    type: DataType.UUID,
-    allowNull: false,
-  })
-  userId: string;
 }
