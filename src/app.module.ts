@@ -9,7 +9,11 @@ import { ConfigModule } from '@nestjs/config';
 import { APP_GUARD } from '@nestjs/core';
 import { AtGuard } from './auth/guard';
 import { TaskModule } from './task/task.module';
+import { CacheModule } from '@nestjs/cache-manager';
+import type { RedisClientOptions } from 'redis';
+import * as redisStore from 'cache-manager-redis-store';
 
+const REDIS_URL = process.env.REDIS_URL;
 @Module({
   imports: [
     SequelizeModule.forRoot(dbConfig),
@@ -17,6 +21,13 @@ import { TaskModule } from './task/task.module';
     UserModule,
     ConfigModule.forRoot({ isGlobal: true }),
     TaskModule,
+    CacheModule.register<RedisClientOptions>({
+      isGlobal: true,
+      ttl: 1000,
+      max: 100,
+      store: `${redisStore}`,
+      url: REDIS_URL,
+    }),
   ],
   providers: [
     Logger,

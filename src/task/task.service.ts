@@ -1,6 +1,7 @@
 import {
   HttpException,
   HttpStatus,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -8,12 +9,15 @@ import {
 import { InjectModel } from '@nestjs/sequelize';
 import { Task } from 'src/task/task.model';
 import { CreateTaskDto } from './dto';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class TaskService {
   constructor(
-    @InjectModel(Task) private taskModel: typeof Task,
-    private readonly logger: Logger,
+    @InjectModel(Task) private taskModel: typeof Task, // model
+    private readonly logger: Logger, // log
+    @Inject(CACHE_MANAGER) private cache: Cache,
   ) {}
 
   SERVICE: string = TaskService.name;
@@ -48,15 +52,26 @@ export class TaskService {
   // GET A TASK ITEM
   async getTask(userId: string, taskId: string): Promise<Task> {
     try {
-      // *******implement check cache**********
-      const task = await this.taskModel.findOne({
-        where: {
-          id: taskId,
-          ownerId: userId,
-        },
-      });
+      // first check if task is available in the cache
+      const cacheKey = `task_${taskId}`;
+      let task: Task = await this.cache.get(cacheKey);
+      console.log('Task from cache', task);
 
-      if (!task) throw new NotFoundException();
+      // if it is not available
+      if (!task) {
+        task = await this.taskModel.findOne({
+          where: {
+            id: taskId,
+            ownerId: userId,
+          },
+        });
+
+        if (!task) throw new NotFoundException();
+
+        console.log('Task from disk');
+        // save task into cache memory
+        await this.cache.set(cacheKey, task);
+      }
 
       this.logger.log(`Task retrieved successfully - ${task.id}`, this.SERVICE);
 
