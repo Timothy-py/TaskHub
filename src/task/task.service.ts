@@ -8,9 +8,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
 import { Task } from 'src/task/task.model';
-import { CreateTaskDto } from './dto';
+import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
+import { Sequelize } from 'sequelize';
 
 @Injectable()
 export class TaskService {
@@ -18,6 +19,7 @@ export class TaskService {
     @InjectModel(Task) private taskModel: typeof Task, // model
     private readonly logger: Logger, // log
     @Inject(CACHE_MANAGER) private cache: Cache,
+    @Inject(Sequelize) private readonly sequelize: Sequelize,
   ) {}
 
   SERVICE: string = TaskService.name;
@@ -55,7 +57,6 @@ export class TaskService {
       // first check if task is available in the cache
       const cacheKey = `task_${taskId}`;
       let task: Task = await this.cache.get(cacheKey);
-      console.log('Task from cache', task);
 
       // if it is not available
       if (!task) {
@@ -68,7 +69,6 @@ export class TaskService {
 
         if (!task) throw new NotFoundException();
 
-        console.log('Task from disk');
         // save task into cache memory
         await this.cache.set(cacheKey, task);
       }
@@ -84,6 +84,55 @@ export class TaskService {
         `Unable to retrieve task item - ${taskId}`,
         error.task,
         this.SERVICE,
+      );
+    }
+  }
+
+  //   EDIT/UPDATE A TASK ITEM
+  async editTask(
+    taskId: string,
+    userId: string,
+    dto: UpdateTaskDto,
+  ): Promise<Task> {
+    const transaction = await this.sequelize.transaction();
+    try {
+      // update task in db
+      const [numOfAffectedRows, updateTask] = await this.taskModel.update(dto, {
+        where: {
+          id: taskId,
+          ownerId: userId,
+        },
+        returning: true,
+        transaction: transaction,
+      });
+
+      if (numOfAffectedRows === 0)
+        throw new NotFoundException('Task Not Found');
+
+      //   remove task from cache
+      const cacheKey = `task_${taskId}`;
+      await this.cache.del(cacheKey);
+
+      const updatedTask = await this.taskModel.findByPk(taskId, {
+        transaction,
+      });
+      await transaction.commit();
+
+      this.logger.log(`Task updated successfully - ${taskId}`, this.SERVICE);
+
+      return updatedTask;
+    } catch (error) {
+      if (error.status === 404) throw new NotFoundException('Task Not Found');
+      this.logger.error(
+        `Unable to update task - ${taskId}`,
+        error.stack,
+        this.SERVICE,
+      );
+
+      await transaction.rollback();
+      throw new HttpException(
+        `${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
   }

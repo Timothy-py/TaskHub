@@ -6,10 +6,11 @@ import {
   Param,
   ParseUUIDPipe,
   Post,
+  Put,
 } from '@nestjs/common';
 import { TaskService } from './task.service';
 import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
-import { CreateTaskDto } from './dto';
+import { CreateTaskDto, UpdateTaskDto } from './dto';
 import { GetUser } from 'src/decorators';
 import { Task } from './task.model';
 
@@ -41,5 +42,18 @@ export class TaskController {
     @GetUser('sub') userId: string,
   ): Promise<Task> {
     return this.taskService.getTask(userId, taskId);
+  }
+
+  // EDIT A TASK ITEM
+  @HttpCode(200)
+  @ApiOperation({ summary: 'Edit task item detail' })
+  @ApiBearerAuth()
+  @Put(':id')
+  editTask(
+    @Body() dto: UpdateTaskDto,
+    @Param('id', ParseUUIDPipe) taskId: string,
+    @GetUser('sub') userId: string,
+  ): Promise<Task> {
+    return this.taskService.editTask(taskId, userId, dto);
   }
 }
