@@ -70,6 +70,7 @@ describe('Task (E2E)', () => {
     dueDate: '2023-06-01',
     reminderDate: '2023-05-31',
   };
+  let taskId: string;
 
   // **********************CREATE A TEST**********************
   describe('POST /tasks', () => {
@@ -82,11 +83,35 @@ describe('Task (E2E)', () => {
         .expect(HttpStatus.CREATED);
 
       const createdTask = createTaskResponse.body;
+      taskId = createdTask.id;
 
       // Assert the response of the created task
       expect(createdTask).toHaveProperty('id');
       expect(createdTask.title).toBe('Test Task');
       expect(createdTask.description).toBe('This is a test task');
+    });
+  });
+
+  // **********************GET A TASK TEST**********************
+  describe('GET /api/v1/tasks/:id', () => {
+    it('should get a task detail', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(HttpStatus.OK);
+      expect(response.body.title).toBe('Test Task');
+      expect(response.body.description).toBe('This is a test task');
+    });
+
+    it('should return 404 if task does not exist', async () => {
+      const nonExistingTaskId = '3f02c10a-03fa-11ee-be56-0242ac120002';
+
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/tasks/${nonExistingTaskId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(HttpStatus.NOT_FOUND);
     });
   });
 });
