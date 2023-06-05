@@ -9,7 +9,7 @@ describe('Authentication (E2E)', () => {
     let app: INestApplication;
     let sequelize: Sequelize;
 
-    // Build up logic
+    // BUILD UP LOGIC
     beforeAll(async () => {
         const moduleFixture: TestingModule = await Test.createTestingModule({imports: [AppModule], }).compile();
 
@@ -21,7 +21,7 @@ describe('Authentication (E2E)', () => {
         sequelize = moduleFixture.get(Sequelize);
     });
 
-    // Tear down logic
+    // TEAR DOWN LOGIC
     afterAll(async () => {
         // delete all entries in the user table
         await User.destroy({where: {}});
@@ -33,13 +33,15 @@ describe('Authentication (E2E)', () => {
         await app.close();
     });
 
+    const userDto = {
+      name: 'user',
+      email: 'user@testing.com',
+      password: 'password123',
+    };
+
+    // SIGN UP TEST
     describe('POST /auth/local/signup', () => {
         it('should create a new user', async () => {
-          const userDto = {
-            name: 'John Doe',
-            email: 'john.doe@example.com',
-            password: 'password123',
-          };
     
           const response = await request(app.getHttpServer())
             .post('/auth/local/signup')
@@ -54,20 +56,9 @@ describe('Authentication (E2E)', () => {
         });
     
         it('should return 409 Conflict if email already exists', async () => {
-          const existingUserDto = {
-            name: 'Jane Smith',
-            email: 'jane.smith@example.com',
-            password: 'password456',
-          };
-    
-          await request(app.getHttpServer())
-            .post('/auth/local/signup')
-            .send(existingUserDto)
-            .expect(HttpStatus.CREATED);
-    
           const response = await request(app.getHttpServer())
             .post('/auth/local/signup')
-            .send(existingUserDto)
+            .send(userDto)
             .expect(HttpStatus.CONFLICT);
     
           expect(response.body.message).toBe('Email already exists');
@@ -76,7 +67,7 @@ describe('Authentication (E2E)', () => {
         it('should return 500 Internal Server Error for other errors', async () => {
           const invalidUserDto = {
             name: 'Invalid User',
-            email: '', // Invalid email
+            email: 'invalid', // Invalid email
             password: 'password789',
           };
     
@@ -86,6 +77,54 @@ describe('Authentication (E2E)', () => {
             .expect(HttpStatus.INTERNAL_SERVER_ERROR);
     
           expect(response.body.message).toBe('Invalid email');
+        });
+      });
+
+      // SIGN IN TEST
+      describe('POST /auth/local/signin', () => {
+        it('should sign in a user', async () => {
+          const email = userDto.email;
+          const password = userDto.password;
+    
+          // Make a request to sign in the user
+          const response = await request(app.getHttpServer())
+            .post('/auth/local/signin')
+            .send({ email, password })
+            .expect(HttpStatus.OK);
+    
+          // Assert the response
+          expect(response.body).toHaveProperty('accessToken');
+          expect(response.body).toHaveProperty('refreshToken');
+        });
+    
+        it('should return Unauthorized if invalid credentials are provided', async () => {
+          const email = userDto.email;
+          const password = 'incorrect-password';
+    
+          // Make a request to sign in with invalid credentials
+          const response = await request(app.getHttpServer())
+            .post('/auth/local/signin')
+            .send({ email, password })
+            .expect(HttpStatus.UNAUTHORIZED);
+    
+          // Assert the response
+          expect(response.body).toHaveProperty('statusCode', HttpStatus.UNAUTHORIZED);
+          expect(response.body).toHaveProperty('message', 'Incorrect Password');
+        });
+    
+        it('should return NotFound if user does not exist', async () => {
+          const email = 'user2@testing.com';
+          const password = userDto.password;
+    
+          // Make a request to sign in with non-existent user
+          const response = await request(app.getHttpServer())
+            .post('/auth/local/signin')
+            .send({ email, password })
+            .expect(HttpStatus.NOT_FOUND);
+    
+          // Assert the response
+          expect(response.body).toHaveProperty('statusCode', HttpStatus.NOT_FOUND);
+          expect(response.body).toHaveProperty('message', 'User does not exist');
         });
       });
 })
