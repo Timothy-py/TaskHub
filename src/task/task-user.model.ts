@@ -6,7 +6,7 @@ import {
   Table,
 } from 'sequelize-typescript';
 import { Task } from './task.model';
-import { User } from 'src/user/user.model';
+import { User } from './../user/user.model';
 
 // Task-User Many-To-Many relationship Table
 @Table({ tableName: 'task_user' })

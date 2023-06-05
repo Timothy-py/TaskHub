@@ -8,7 +8,7 @@ import {
 } from '@nestjs/common';
 import { SignInDto, SignUpDto } from './dto';
 import { InjectModel } from '@nestjs/sequelize';
-import { User } from 'src/user/user.model';
+import { User } from './../user/user.model';
 import * as argon from 'argon2';
 import { Tokens } from './types/tokens.type';
 import { ConfigService } from '@nestjs/config';

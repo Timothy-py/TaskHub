@@ -18,7 +18,7 @@ import {
   UpdateTaskDto,
   updateTaskComplete,
 } from './dto';
-import { GetUser } from 'src/decorators';
+import { GetUser } from './../decorators';
 import { Task } from './task.model';
 
 @ApiTags('Task')

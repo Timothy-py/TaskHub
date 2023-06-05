@@ -7,8 +7,8 @@ import {
   Default,
   BelongsToMany,
 } from 'sequelize-typescript';
-import { TaskUser } from 'src/task/task-user.model';
-import { Task } from 'src/task/task.model';
+import { TaskUser } from './../task/task-user.model';
+import { Task } from './../task/task.model';
 import { v4 as uuidv4 } from 'uuid';
 
 @Table({ tableName: 'users' })

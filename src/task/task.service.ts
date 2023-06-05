@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Task } from 'src/task/task.model';
+import { Task } from './task.model';
 import {
   AddUsersToTaskDto,
   CreateTaskDto,
@@ -18,7 +18,7 @@ import {
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Sequelize } from 'sequelize';
-import { User } from 'src/user/user.model';
+import { User } from './../user/user.model';
 
 @Injectable()
 export class TaskService {
