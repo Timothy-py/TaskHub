@@ -143,7 +143,6 @@ describe('Authentication (E2E)', () => {
 
       accessToken = refreshResponse.body.access_token;
 
-      // const newAccessToken = refreshResponse.body.access_token;
       // Perform protected requests using the new access token
     });
   });
