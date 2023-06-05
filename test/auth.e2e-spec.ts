@@ -33,13 +33,17 @@ describe('Authentication (E2E)', () => {
         await app.close();
     });
 
+    // -----------VALUES
     const userDto = {
       name: 'user',
       email: 'user@testing.com',
       password: 'password123',
     };
 
-    // SIGN UP TEST
+    let accessToken: string;
+    let refreshToken: string;
+
+    // **********************SIGN UP TEST**********************
     describe('POST /auth/local/signup', () => {
         it('should create a new user', async () => {
     
@@ -80,7 +84,7 @@ describe('Authentication (E2E)', () => {
         });
       });
 
-      // SIGN IN TEST
+      // **********************SIGN IN TEST**********************
       describe('POST /auth/local/signin', () => {
         it('should sign in a user', async () => {
           const email = userDto.email;
@@ -93,8 +97,12 @@ describe('Authentication (E2E)', () => {
             .expect(HttpStatus.OK);
     
           // Assert the response
-          expect(response.body).toHaveProperty('accessToken');
-          expect(response.body).toHaveProperty('refreshToken');
+          expect(response.body).toHaveProperty('access_token');
+          expect(response.body).toHaveProperty('refresh_token');
+
+          // Save the tokens
+          accessToken = response.body.access_token;
+          refreshToken = response.body.refresh_token
         });
     
         it('should return Unauthorized if invalid credentials are provided', async () => {
@@ -125,6 +133,30 @@ describe('Authentication (E2E)', () => {
           // Assert the response
           expect(response.body).toHaveProperty('statusCode', HttpStatus.NOT_FOUND);
           expect(response.body).toHaveProperty('message', 'User does not exist');
+        });
+      });
+
+      // **********************LOGOUT TEST**********************
+      describe('POST /auth/local/logout', () => {
+        it('should log out a user', async () => {
+          // Make a request to log out the user
+          const response = await request(app.getHttpServer())
+            .post('/auth/local/logout')
+            .set('Authorization', `Bearer ${accessToken}`)
+            .expect(HttpStatus.OK);
+    
+          // Assert the response
+          expect(response.body).toBeDefined();
+        });
+    
+        it('should return 401 Unauthorized if not authenticated', async () => {
+          // Make a request to log out without authentication
+          const response = await request(app.getHttpServer())
+            .post('/auth/local/logout')
+            .expect(HttpStatus.UNAUTHORIZED);
+    
+          // Assert the response
+          expect(response.body).toBeDefined();
         });
       });
 })
