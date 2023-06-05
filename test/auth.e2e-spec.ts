@@ -128,6 +128,26 @@ describe('Authentication (E2E)', () => {
     });
   });
 
+  // // **********************REFRESH TOKEN TEST**********************
+  describe('POST /auth/local/refresh', () => {
+    it('should refresh the access token', async () => {
+      // Refresh the access token using the obtained refresh token
+      const refreshResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/local/refresh')
+        .set('Authorization', `Bearer ${refreshToken}`)
+        .expect(HttpStatus.OK);
+
+      // Assert the response
+      expect(refreshResponse.body).toHaveProperty('access_token');
+      expect(refreshResponse.body).toHaveProperty('refresh_token');
+
+      accessToken = refreshResponse.body.access_token;
+
+      // const newAccessToken = refreshResponse.body.access_token;
+      // Perform protected requests using the new access token
+    });
+  });
+
   // // **********************LOGOUT TEST**********************
   describe('POST /auth/local/logout', () => {
     it('should log out a user', async () => {
