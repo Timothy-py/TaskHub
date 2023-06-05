@@ -298,4 +298,21 @@ export class TaskService {
       );
     }
   }
+
+  //   **********************HELPER FUNCTIONS**********************
+  async getTaskDueForReminder(): Promise<Task[]> {
+    const currentDate = new Date();
+
+    const tasks = this.taskModel.findAll({
+      where: {
+        isCompleted: false,
+        reminderDate: {
+          $lte: currentDate,
+        },
+      },
+      include: ['users'],
+    });
+
+    return tasks;
+  }
 }
