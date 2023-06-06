@@ -43,7 +43,7 @@ const REDIS_URL = process.env.REDIS_URL;
       useClass: AtGuard, //automatically guard all routes with access token
     },
     TaskReminderJob,
-    // TaskService,
+    TaskService,
     EmailService,
   ],
 })
