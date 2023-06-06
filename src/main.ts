@@ -4,6 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { instance } from 'logger/winston.logger';
+import { TaskReminderJob } from './../jobs/taskReminder.job';
 
 const PORT = process.env.PORT || 3000;
 
@@ -24,6 +25,10 @@ async function bootstrap() {
       whitelist: true,
     }),
   );
+
+  // start the task reminder scheduler
+  const taskReminderJob = app.get(TaskReminderJob);
+  taskReminderJob.dueTasksProcessor();
 
   // setup swagger documentation
   const config = new DocumentBuilder()

@@ -14,7 +14,9 @@ import type { RedisClientOptions } from 'redis';
 import * as redisStore from 'cache-manager-redis-store';
 import { ScheduleModule } from '@nestjs/schedule';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-// import { TaskReminderJob } from './../jobs/taskReminder.job';
+import { TaskReminderJob } from './../jobs/taskReminder.job';
+import { TaskService } from './task/task.service';
+import { EmailService } from './../services/email.service';
 
 const REDIS_URL = process.env.REDIS_URL;
 @Module({
@@ -40,7 +42,9 @@ const REDIS_URL = process.env.REDIS_URL;
       provide: APP_GUARD,
       useClass: AtGuard, //automatically guard all routes with access token
     },
-    // TaskReminderJob,
+    TaskReminderJob,
+    // TaskService,
+    EmailService,
   ],
 })
 export class AppModule {}

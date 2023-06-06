@@ -19,6 +19,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager';
 import { Sequelize } from 'sequelize';
 import { User } from './../user/user.model';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Injectable()
 export class TaskService {
@@ -28,6 +29,7 @@ export class TaskService {
     private readonly logger: Logger, // log
     @Inject(CACHE_MANAGER) private cache: Cache,
     @Inject(Sequelize) private readonly sequelize: Sequelize,
+    private eventEmitter: EventEmitter2,
   ) {}
 
   SERVICE: string = TaskService.name;
@@ -299,7 +301,7 @@ export class TaskService {
   }
 
   //   **********************HELPER FUNCTIONS**********************
-  async getTaskDueForReminder(): Promise<Task[]> {
+  async getTasksDueForReminder(): Promise<Task[]> {
     const currentDate = new Date();
 
     const tasks = this.taskModel.findAll({
@@ -307,12 +309,29 @@ export class TaskService {
         isCompleted: false,
         reminderSent: false,
         reminderDate: {
-          $lte: currentDate,
+          $gte: currentDate,
         },
       },
       include: ['users'],
     });
 
     return tasks;
+  }
+
+  async processTaskDueForReminders() {
+    const tasks = await this.getTasksDueForReminder();
+    for (const task of tasks) {
+      const assignedUsers = await task.$get('assignedUsers');
+      for (const user of assignedUsers) {
+        // emit an event to send the task details and user email for email service to handle
+        this.eventEmitter.emit('sendReminderEmail', {
+          task,
+          userEmail: user.email,
+        });
+      }
+      // mark the task as reminder sent
+      task.reminderSent = true;
+      await task.save();
+    }
   }
 }
