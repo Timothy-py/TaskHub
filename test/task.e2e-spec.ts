@@ -165,19 +165,47 @@ describe('Task (E2E)', () => {
         .send(testUser2)
         .expect(HttpStatus.CREATED);
 
-      const user2Id = userResponse.body.id;
+      const userEmail = userResponse.body.email;
 
       const response = await request(app.getHttpServer())
         .patch(`/api/v1/tasks/${taskId}/users`)
         .set('Authorization', `Bearer ${accessToken}`)
         .send({
-          emails: [user2Id],
+          emails: [userEmail],
         });
 
       expect(response.status).toBe(HttpStatus.OK);
-      //   expect(response.body.users).toEqual(
-      //     expect.arrayContaining([userId, user2Id]),
-      //   );
+    });
+  });
+
+  // **********************GET ALL ASSIGNED TASK USERS TEST**********************
+  describe('GET /api/v1/tasks/:id/users', () => {
+    it('should retrieve all users assigned to a task', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/tasks/${taskId}/users`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(HttpStatus.OK);
+      expect(response.body.assignedUsers).toHaveLength(1);
+    });
+  });
+
+  // **********************DELETE A TASK TEST**********************
+  describe('DELETE /api/v1/tasks/:id', () => {
+    it('should delete a task', async () => {
+      const response = await request(app.getHttpServer())
+        .delete(`/api/v1/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(HttpStatus.NO_CONTENT);
+    });
+
+    it('should return 404 if task does not exist', async () => {
+      const response = await request(app.getHttpServer())
+        .get(`/api/v1/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`);
+
+      expect(response.status).toBe(HttpStatus.NOT_FOUND);
     });
   });
 });
