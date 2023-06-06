@@ -71,6 +71,16 @@ describe('Task (E2E)', () => {
     reminderDate: '2023-05-31',
   };
   let taskId: string;
+  const nonExistingTaskId = '3f02c10a-03fa-11ee-be56-0242ac120002';
+  const updatedTaskData = {
+    title: 'Updated Task',
+    description: 'This is an updated task',
+    dueDate: '2023-07-15',
+    reminderDate: '2023-07-12',
+  };
+  const updateTaskCompleteDto = {
+    isComplete: true,
+  };
 
   // **********************CREATE A TEST**********************
   describe('POST /tasks', () => {
@@ -105,13 +115,36 @@ describe('Task (E2E)', () => {
     });
 
     it('should return 404 if task does not exist', async () => {
-      const nonExistingTaskId = '3f02c10a-03fa-11ee-be56-0242ac120002';
-
       const response = await request(app.getHttpServer())
         .get(`/api/v1/tasks/${nonExistingTaskId}`)
         .set('Authorization', `Bearer ${accessToken}`);
 
       expect(response.status).toBe(HttpStatus.NOT_FOUND);
+    });
+  });
+
+  // **********************EDIT A TASK TEST**********************
+  describe('PUT /api/v1/tasks/:id', () => {
+    it('should edit a task', async () => {
+      const response = await request(app.getHttpServer())
+        .put(`/api/v1/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(updatedTaskData);
+
+      expect(response.status).toBe(HttpStatus.OK);
+      expect(response.body.title).toBe('Updated Task');
+    });
+  });
+
+  // **********************UPDATE TASK COMPLETE STATUS TEST**********************
+  describe('PATCH /api/v1/tasks/:id', () => {
+    it('should update the complete status of a task', async () => {
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/tasks/${taskId}`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send(updateTaskCompleteDto);
+
+      expect(response.status).toBe(HttpStatus.OK);
     });
   });
 });
