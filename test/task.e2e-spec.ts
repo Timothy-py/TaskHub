@@ -33,10 +33,12 @@ describe('Task (E2E)', () => {
       password: 'password123',
       name: 'TestUser',
     };
-    await request(app.getHttpServer())
+    const userResponse = await request(app.getHttpServer())
       .post('/api/v1/auth/local/signup')
       .send(testUser)
       .expect(HttpStatus.CREATED);
+
+    userId = userResponse.body.id;
 
     // Signin as the test user to obtain an access token
     const loginResponse = await request(app.getHttpServer())
@@ -64,6 +66,7 @@ describe('Task (E2E)', () => {
   });
 
   // -----------VALUES-----------------
+  let userId: string;
   const taskDto = {
     title: 'Test Task',
     description: 'This is a test task',
@@ -80,6 +83,11 @@ describe('Task (E2E)', () => {
   };
   const updateTaskCompleteDto = {
     isComplete: true,
+  };
+  const testUser2 = {
+    email: 'test2@example.com',
+    password: 'password123',
+    name: 'Test2User',
   };
 
   // **********************CREATE A TEST**********************
@@ -145,6 +153,31 @@ describe('Task (E2E)', () => {
         .send(updateTaskCompleteDto);
 
       expect(response.status).toBe(HttpStatus.OK);
+    });
+  });
+
+  // **********************ADD USERS TO A TASK TEST**********************
+  describe('PATCH /api/v1/tasks/:id/users', () => {
+    it('should add users to a task', async () => {
+      // create a user
+      const userResponse = await request(app.getHttpServer())
+        .post('/api/v1/auth/local/signup')
+        .send(testUser2)
+        .expect(HttpStatus.CREATED);
+
+      const user2Id = userResponse.body.id;
+
+      const response = await request(app.getHttpServer())
+        .patch(`/api/v1/tasks/${taskId}/users`)
+        .set('Authorization', `Bearer ${accessToken}`)
+        .send({
+          emails: [user2Id],
+        });
+
+      expect(response.status).toBe(HttpStatus.OK);
+      //   expect(response.body.users).toEqual(
+      //     expect.arrayContaining([userId, user2Id]),
+      //   );
     });
   });
 });

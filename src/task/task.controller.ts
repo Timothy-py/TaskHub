@@ -93,7 +93,7 @@ export class TaskController {
   @HttpCode(200)
   @ApiOperation({ summary: 'Add user to a task' })
   @ApiBearerAuth()
-  @Patch('add-users/:id')
+  @Patch(':id/users')
   addUsersToTask(
     @Body() dto: AddUsersToTaskDto,
     @Param('id', ParseUUIDPipe) taskId: string,

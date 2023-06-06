@@ -235,7 +235,6 @@ export class TaskService {
       const users = await this.userModel.findAll({
         where: { email: dto.emails },
       });
-      console.log('Users = ', users);
 
       // associate the users with the task
       await task.$set('assignedUsers', users);
