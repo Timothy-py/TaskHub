@@ -13,6 +13,7 @@ import { CacheModule } from '@nestjs/cache-manager';
 import type { RedisClientOptions } from 'redis';
 import * as redisStore from 'cache-manager-redis-store';
 import { ScheduleModule } from '@nestjs/schedule';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 // import { TaskReminderJob } from './../jobs/taskReminder.job';
 
 const REDIS_URL = process.env.REDIS_URL;
@@ -31,6 +32,7 @@ const REDIS_URL = process.env.REDIS_URL;
       url: REDIS_URL,
     }),
     ScheduleModule.forRoot(),
+    EventEmitterModule.forRoot(),
   ],
   providers: [
     Logger,

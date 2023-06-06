@@ -54,6 +54,14 @@ export class Task extends Model<Task> {
   })
   isCompleted: boolean;
 
+  @Column({
+    type: DataType.BOOLEAN,
+    allowNull: false,
+    defaultValue: false,
+    field: 'reminder_sent',
+  })
+  reminderSent: boolean;
+
   @ForeignKey(() => User)
   @Column({
     type: DataType.UUID,

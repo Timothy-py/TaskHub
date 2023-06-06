@@ -305,6 +305,7 @@ export class TaskService {
     const tasks = this.taskModel.findAll({
       where: {
         isCompleted: false,
+        reminderSent: false,
         reminderDate: {
           $lte: currentDate,
         },
