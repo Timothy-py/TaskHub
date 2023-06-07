@@ -1,0 +1,53 @@
+version: '3.8'
+services:
+  api:
+    build:
+      dockerfile: Dockerfile
+      context: .
+    depends_on:
+      - db
+      - cache
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_TYPE=mysql
+      - DATABASE_HOST=localhost
+      - DATABASE_PORT=3306
+      - DATABASE_USERNAME=root
+      - DATABASE_PASSWORD=password
+      - DATABASE=taskhub
+      - ACCESS_TOKEN_SECRET=flight828
+      - REFRESH_TOKEN_SECRET=flight2020
+      - EMAIL_HOST=smtp.ionos.com
+      - EMAIL_PORT=465
+      - EMAIL_USER=example@user.com
+      - EMAIL_PASSWORD=user123
+      - REDIS_URL=redis:localhost:6379
+    ports:
+      - "3000:3000"
+    networks:
+      - app-network
+    
+  db:
+    image: mysql:latest
+    ports:
+      - "3307:3306"
+    environment:
+      - MYSQL_ROOT_PASSWORD=root_password
+      - MYSQL_DATABASE=taskhub
+      - MYSQL_USER=user
+      - MYSQL_PASSWORD=password
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - app-network
+  
+  cache:
+    image: redis
+    ports:
+      - "6380:6379"
+
+networks:
+  app-network
+volumes:
+  mysql-data:
