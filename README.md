@@ -4,13 +4,15 @@
 
 Connect and collaborate with your team on TaskHub, a task management solution that streamlines your workflow and enhances productivity.
 
-## MODULE
+## MODULES
 
 ### Authentication Resource
 
 ### User Resource
 
 ### Task Resource
+
+### Reminder Service
 
 ## API Functionalities
 
@@ -36,28 +38,28 @@ Connect and collaborate with your team on TaskHub, a task management solution th
 
 # Setting up and running the app on your machine
 
-## Step 1:
+### Step 1:
 
 ```bash
  $ git clone git@github.com:Timothy-py/TaskHub.git
 ```
 
-## Step 2:
+### Step 2:
 
 Navigate to the project directory i.e TaskHub/
 
-## Step 3: Environment Setup
+### Step 3: Environment Setup
 
 Create '.env' file in the root directory  
 Copy the contents '.env.sample' file and paste into .env  
 Set your desired configurations, especially the database name, username and password
 
-## Step 4: Database setup
+### Step 4: Database setup
 
 Ensure mysql server is installed and running on your system  
 Create a database with the name used above or default 'taskhub'
 
-## Step 5: Install the packages
+### Step 5: Install the packages
 
 Run this command in the root directory
 
@@ -65,7 +67,7 @@ Run this command in the root directory
 $ npm install
 ```
 
-## Step 6: Running the app
+### Step 6: Running the app
 
 Run this command in the root directory
 
@@ -78,9 +80,9 @@ $ npm run start:dev
 
 # Setting up and running the app on Docker container
 
-## Step 1: Install the docker and docker compose on your machine
+### Step 1: Install the docker and docker compose on your machine
 
-## Step 2: Spin up the app
+### Step 2: Spin up the app
 
 Run this command in the root directory
 
