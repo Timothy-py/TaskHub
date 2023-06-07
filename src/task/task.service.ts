@@ -8,7 +8,7 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/sequelize';
-import { Task } from './task.model';
+import { Task } from './../task/task.model';
 import {
   AddUsersToTaskDto,
   CreateTaskDto,
@@ -24,7 +24,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 @Injectable()
 export class TaskService {
   constructor(
-    @InjectModel(Task) private taskModel: typeof Task, // model
+    @InjectModel(Task) private taskModel: typeof Task,
     @InjectModel(User) private userModel: typeof User,
     private readonly logger: Logger, // log
     @Inject(CACHE_MANAGER) private cache: Cache,
@@ -312,7 +312,7 @@ export class TaskService {
           $gte: currentDate,
         },
       },
-      include: ['users'],
+      include: ['assignedUsers'],
     });
 
     return tasks;

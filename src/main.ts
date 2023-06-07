@@ -4,10 +4,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import { WinstonModule } from 'nest-winston';
 import { instance } from 'logger/winston.logger';
-import { TaskReminderJob } from './../jobs/taskReminder.job';
-import { Sequelize } from 'sequelize';
-import dbConfig from './../db/config'
-console.log(dbConfig);
+import { ReminderService } from './reminder/reminder.service';
 
 const PORT = process.env.PORT || 3000;
 
@@ -29,15 +26,8 @@ async function bootstrap() {
     }),
   );
 
-  // create the database
-  const sequelize = new Sequelize(dbConfig)
-  // connect to the db
-  await sequelize.authenticate();
-  // create the db if it doesn't exist
-  await sequelize.query(`CREATE DATABASE IF NOT EXISTS ${sequelize.config.database}`);
-
   // start the task reminder scheduler
-  const taskReminderJob = app.get(TaskReminderJob);
+  const taskReminderJob = app.get(ReminderService);
   taskReminderJob.dueTasksProcessor();
 
   // setup swagger documentation
