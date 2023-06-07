@@ -303,6 +303,8 @@ export class TaskService {
   //   **********************HELPER FUNCTIONS**********************
   async getTasksDueForReminder(): Promise<Task[]> {
     const currentDate = new Date();
+    console.log('Current date', currentDate)
+    this.logger.log('Get tasks due for reminder', this.SERVICE)
 
     const tasks = this.taskModel.findAll({
       where: {
@@ -332,6 +334,7 @@ export class TaskService {
       // mark the task as reminder sent
       task.reminderSent = true;
       await task.save();
+      this.logger.log('Reminder sent task - ', task.id)
     }
   }
 }

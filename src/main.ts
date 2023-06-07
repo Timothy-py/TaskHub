@@ -27,8 +27,8 @@ async function bootstrap() {
   );
 
   // start the task reminder scheduler
-  const taskReminderJob = app.get(ReminderService);
-  taskReminderJob.dueTasksProcessor();
+  // const taskReminderJob = app.get(ReminderService);
+  // taskReminderJob.dueTasksProcessor();
 
   // setup swagger documentation
   const config = new DocumentBuilder()
