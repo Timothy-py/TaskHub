@@ -24,6 +24,7 @@ Connect and collaborate with your team on TaskHub, a task management solution th
 - Delete a task
 - Add users to a task
 - View all assigned users to a task
+- Email reminder for tasks
 
 ## Tech Stacks
 
